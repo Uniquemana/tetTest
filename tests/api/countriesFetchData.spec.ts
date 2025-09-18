@@ -17,7 +17,7 @@ test.describe('Fetching countries data', () => {
             }
         `;
         const response = await apiRequest.post(`${API_BASE_URL}`, { data: { query }, });
-        // await expect(response.ok()).toBeTruthy();
+        await expect(response.ok()).toBeTruthy();
         const responseBody = await response.json();
         console.log(responseBody);
         await expect(response.status()).toBe(200);

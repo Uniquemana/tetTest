@@ -1,102 +1,84 @@
-import { Page, expect, request, test } from "@playwright/test";
+import { expect, test, APIRequestContext } from "@playwright/test";
 
-let API_BASE_URL='https://petstore.swagger.io/v2'
-let petID = '12'
-let petName = 'testy'
+test.describe.serial('API petstore CRUD test', () => {
+    const API_BASE_URL='https://petstore.swagger.io/v2'
+    let api: APIRequestContext;
+    const petDataSet = {
+        id: 12,
+        category: { id: 666, name: 'dog'},
+        name: 'Testy',
+        photoUrls: [],
+        tags: [{id: 1, name: 'bigDog'}],
+        status: "available",
+    };
 
-test.describe('API petstore CRUD test', () => {
-    test('Create a pet, read and update its info, and delete pet record', async () => {
-        const apiRequest = await request.newContext();
-        const postResponse = await apiRequest.post(`${API_BASE_URL}`+`/pet`, {
-            data:
-                {
-                "id": `${petID}`,
-                "category": {
-                    "id": 666,
-                    "name": "dog"
-                },
-                "name": `${petName}`,
-                "photoUrls": [
-                    "string"
-                ],
-                "tags": [
-                    {
-                    "id": 1,
-                    "name": "string"
-                    }
-                ],
-                "status": "taken"
-                }
-        });
+    test.beforeAll(async ({ request }) => { api = request; });
+
+    test('Create a pet, read and update its info, and delete pet record', async ({ request }) => {
+        const postResponse = await request.post(`${API_BASE_URL}`+`/pet`, {data: petDataSet});
         await expect(postResponse.ok()).toBeTruthy();
         await expect(postResponse.status()).toBe(200);
         const postResponseBody = await postResponse.json();
-        await expect(postResponseBody.id).toBe(12);
-        await expect(postResponseBody.name).toBe('testy');
-        await expect(postResponseBody.category.name).toBe('dog'); 
-        
-        //Did not want to use an empty funtion timeout
-        try{
-            const getResponse = await apiRequest.get(`${API_BASE_URL}`+`/pet`+`/${petID}`);
-            await expect(getResponse.ok()).toBeTruthy();
-            await expect(getResponse.status()).toBe(200);
+        await expect(postResponseBody.id).toBe(petDataSet.id);
+        await expect(postResponseBody.name).toBe(`${petDataSet.name}`);
+        await expect(postResponseBody.category.name).toBe(`${petDataSet.category.name}`); 
+        console.log(postResponseBody);
+
+    });
+    
+    test('Greate a GET request', async ({ request }) => {
+        await expect.poll(async () => {
+            const getResponse = await request.get(`${API_BASE_URL}`+`/pet`+`/${petDataSet.id}`);
             const getResponseBody = await getResponse.json();
-            await expect(getResponseBody.id).toBe(12);
-            await expect(getResponseBody.name).toBe('testy');
-            await expect(getResponseBody.category.name).toBe('dog');
-        } catch(e){
-            const getResponse = await apiRequest.get(`${API_BASE_URL}`+`/pet`+`/${petID}`);
-            await expect(getResponse.ok()).toBeTruthy();
-            await expect(getResponse.status()).toBe(200);
-            const getResponseBody = await getResponse.json();
-            await expect(getResponseBody.id).toBe(12);
-            await expect(getResponseBody.name).toBe('testy');
-            await expect(getResponseBody.category.name).toBe('dog');
-        }
+            console.log(getResponseBody);
+            return getResponse.status();
+        }, {
+            timeout: 4 * 1000,
+        }).toBe(200);
+    });
         
-        
-        const putResponse = await apiRequest.put(`${API_BASE_URL}`+`/pet`, {
+    test('Greate a PUT request', async ({ request }) => {
+        await expect.poll(async () => {  
+            const putResponse = await request.put(`${API_BASE_URL}`+`/pet`, { 
             data:
                 {
-                "id": `${petID}`,
-                "status": "available"
+                    id: 12,
+                    category: { id: 666, name: 'dog'},
+                    name: 'Testy',
+                    photoUrls: [],
+                    tags: [{id: 1, name: 'bigDog'}],
+                    status: "taken",
                 }
-        });
-        const putResponseBody = putResponse.json();
+            })
+            const putResponseBody = await putResponse.json();
+            console.log(putResponseBody);
+            return putResponse.status();
+        }, {
+            timeout: 4 * 1000,
+        }).toBe(200);
 
+    });
 
-        const delResponse = await apiRequest.delete(`${API_BASE_URL}`+`/pet`+`/${petID}`)
+    test('Create a DELETE request', async ({ request }) => {
+        const delResponse = await request.delete(`${API_BASE_URL}`+`/pet`+`/${petDataSet.id}`)
         await expect(delResponse.ok()).toBeTruthy();
         await expect(delResponse.status()).toBe(200);
         const delResponseBody = await delResponse.json();
+        console.log(delResponseBody);
         await expect(delResponseBody.code).toBe(200);
-        await expect(delResponseBody.message).toBe(`${petID}`);
+        await expect(delResponseBody.message).toBe(`${petDataSet.id}`);
+
+        //Verify if the pet info is deleted
+        await expect.poll(async () => {
+            const getResponse = await request.get(`${API_BASE_URL}`+`/pet`+`/${petDataSet.id}`);
+            const getResponseBody = await getResponse.json();
+            console.log(getResponseBody);
+            return getResponse.status();
+        }, {
+            timeout: 4 * 1000,
+        }).toBe(404); 
         
     });
 
-    // test('Read the pet info', async () => {
-    //     const apiRequest = await request.newContext();
-    //     // const getResponse = await apiRequest.get(`${API_BASE_URL}`+`/pet`+`/${petID}`);
-    //     // await expect(getResponse.ok()).toBeTruthy();
-    //     // await expect(getResponse.status()).toBe(200);
-    //     // const responseBody = await getResponse.json();
-    //     // console.log(responseBody);
+}); 
 
-    //     // expect(responseBody.id).toBe(12);
-    //     // expect(responseBody.name).toBe('testy');
-    //     // expect(responseBody.category.name).toBe('dog');
-    // });
-
-    // test('Update pet info', async () => {
-    //     const apiRequest = await request.newContext();
-    //     const putResponse = await apiRequest.put(`${API_BASE_URL}`+`/pet`, {
-    //         data:
-    //             {
-    //             "id": `${petID}`,
-    //             "status": "available"
-    //             }
-    //     });
-    //     const responseBody = putResponse.json();
-    //     console.log(responseBody);
-    // });
-});
