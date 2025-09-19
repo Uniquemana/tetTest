@@ -5,7 +5,7 @@
 ### Seting up the env
 1. `npx` version >=10.
 2. `npx init playwright@latest`.
-3. `git pull` and `cd` into the repo.
+3. `git clone` and `cd` into the repo.
 
 ### Running the tests 
 - run `npx playwright test` to run the tests headlessly.
