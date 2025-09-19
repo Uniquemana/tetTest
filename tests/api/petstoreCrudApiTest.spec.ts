@@ -12,7 +12,7 @@ test.describe.serial('API petstore CRUD test', () => {
         status: "available",
     };
 
-    test('Create a pet, read and update its info, and delete pet record', async ({ request }) => {
+    test('Create a pet', async ({ request }) => {
         const postResponse = await request.post(`${API_BASE_URL}`+`/pet`, {data: petDataSet});
         await expect(postResponse.ok()).toBeTruthy();
         await expect(postResponse.status()).toBe(200);
@@ -20,11 +20,11 @@ test.describe.serial('API petstore CRUD test', () => {
         await expect(postResponseBody.id).toBe(petDataSet.id);
         await expect(postResponseBody.name).toBe(`${petDataSet.name}`);
         await expect(postResponseBody.category.name).toBe(`${petDataSet.category.name}`); 
+        await expect(postResponseBody.status).toBe(`${petDataSet.status}`); 
         console.log(postResponseBody);
-
     });
     
-    test('Greate a GET request', async ({ request }) => {
+    test('Check the pet info', async ({ request }) => {
         await expect.poll(async () => {
             const getResponse = await request.get(`${API_BASE_URL}`+`/pet`+`/${petDataSet.id}`);
             const getResponseBody = await getResponse.json();
@@ -33,6 +33,7 @@ test.describe.serial('API petstore CRUD test', () => {
         }, {
             timeout: 4 * 1000,
         }).toBe(200);
+
     });
         
     test('Greate a PUT request', async ({ request }) => {
@@ -49,6 +50,12 @@ test.describe.serial('API petstore CRUD test', () => {
                 }
             })
             const putResponseBody = await putResponse.json();
+            await expect(putResponseBody.id).toBe(petDataSet.id);
+            await expect(typeof putResponseBody.id).toBe('number');
+            await expect(putResponseBody.name).toBe(`${petDataSet.name}`);
+            await expect(typeof putResponseBody.name).toBe('string');
+            await expect(putResponseBody.category.name).toBe(`${petDataSet.category.name}`); 
+            await expect(putResponseBody.status).toBe(`taken`);
             console.log(putResponseBody);
             return putResponse.status();
         }, {
