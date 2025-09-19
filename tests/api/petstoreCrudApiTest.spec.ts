@@ -12,8 +12,6 @@ test.describe.serial('API petstore CRUD test', () => {
         status: "available",
     };
 
-    test.beforeAll(async ({ request }) => { api = request; });
-
     test('Create a pet, read and update its info, and delete pet record', async ({ request }) => {
         const postResponse = await request.post(`${API_BASE_URL}`+`/pet`, {data: petDataSet});
         await expect(postResponse.ok()).toBeTruthy();

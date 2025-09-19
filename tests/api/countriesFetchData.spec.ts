@@ -24,8 +24,12 @@ test.describe('Fetching countries data', () => {
 
         await expect(responseBody).toHaveProperty('data.country');
         await expect(responseBody.data.country.code).toBe('LV');
+        await expect(typeof responseBody.data.country.code).toBe('string');
         await expect(responseBody.data.country.name).toBe('Latvia');
+        await expect(typeof responseBody.data.country.name).toBe('string');
         await expect(responseBody.data.country.capital).toBe('Riga');
+        await expect(typeof responseBody.data.country.capital).toBe('string');
         await expect(responseBody.data.country.currency).toBe('EUR');
+        await expect(typeof responseBody.data.country.currency).toBe('string');
     });
 });
